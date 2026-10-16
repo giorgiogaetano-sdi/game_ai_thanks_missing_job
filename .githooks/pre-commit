@@ -1,0 +1,5 @@
+#!/bin/sh
+if [ -x .tools/node/node.exe ]; then
+  exec .tools/node/node.exe scripts/check-changelog.cjs commit
+fi
+exec node scripts/check-changelog.cjs commit
