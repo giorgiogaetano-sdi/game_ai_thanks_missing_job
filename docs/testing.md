@@ -6,6 +6,7 @@ Da radice del repository, con Node.js 22 o successivo:
 
 ```sh
 node tests/tests.cjs
+node tests/check-changelog.cjs
 ```
 
 Non servono pacchetti esterni. La suite carica gli script di `src/` in contesti VM e simula DOM e Canvas dove necessario. Un'asserzione fallita deve essere risolta prima di integrare la modifica.

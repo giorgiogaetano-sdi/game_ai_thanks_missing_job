@@ -13,7 +13,14 @@ try {
     for(const line of fs.readFileSync(0,'utf8').trim().split('\n').filter(Boolean)) {
       const [,local,,remote]=line.trim().split(/\s+/);
       if(/^0+$/.test(local))continue; // Eliminazione di un riferimento.
-      const commits=git('rev-list','--no-merges',/^0+$/.test(remote)?local:`${remote}..${local}`);
+      let range=local;
+      if(!/^0+$/.test(remote)) {
+        let remoteKnown=false;
+        try {git('cat-file','-e',`${remote}^{commit}`);remoteKnown=true;} catch {}
+        // A remote tip may not have been fetched yet; validate all local history.
+        if(remoteKnown)range=`${remote}..${local}`;
+      }
+      const commits=git('rev-list','--no-merges',range);
       for(const hash of commits.split('\n').filter(Boolean)) {
         if(checked.has(hash))continue;
         checked.add(hash);
