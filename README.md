@@ -1,6 +1,7 @@
 # AI Thanks Missing Job
 
 Gioco 2D per browser, senza dipendenze, utilizzabile offline.
+https://giorgiogaetano-sdi.github.io/game_ai_thanks_missing_job/
 
 ## Avvio
 
