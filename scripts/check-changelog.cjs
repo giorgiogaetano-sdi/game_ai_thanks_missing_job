@@ -20,7 +20,9 @@ try {
         // A remote tip may not have been fetched yet; validate all local history.
         if(remoteKnown)range=`${remote}..${local}`;
       }
-      const commits=git('rev-list','--no-merges',range);
+      // New branches must not revalidate history already published on a remote.
+      const exclusions=/^0+$/.test(remote)?['--not','--remotes']:[];
+      const commits=git('rev-list','--no-merges',range,...exclusions);
       for(const hash of commits.split('\n').filter(Boolean)) {
         if(checked.has(hash))continue;
         checked.add(hash);

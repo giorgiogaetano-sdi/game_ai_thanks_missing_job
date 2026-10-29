@@ -39,7 +39,7 @@ git add .githooks/pre-commit .githooks/pre-push
 git update-index --chmod=+x .githooks/pre-commit .githooks/pre-push
 ```
 
-Al primo push di un nuovo branch il controllo esamina tutta la sua storia non di merge. Per importare un repository preesistente senza changelog storico, occorre concordare prima una baseline e adeguare il controllo; questo progetto parte con il changelog dal primo commit.
+Al primo push di un nuovo branch il controllo esamina i commit non di merge escludendo quelli già raggiungibili dai riferimenti remoti locali. Esegui `git fetch origin` prima di pubblicare il branch per avere riferimenti aggiornati. La storia già pubblicata (per esempio il commit iniziale della licenza) non richiede un changelog retroattivo; i nuovi commit restano soggetti al controllo.
 
 ## Convenzioni
 
