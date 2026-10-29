@@ -1,0 +1,30 @@
+name: Controlli pull request
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Test e changelog
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.22.0'
+      - name: Test del gioco
+        run: node tests/tests.cjs
+      - name: Test degli hook
+        run: node tests/check-changelog.cjs
+      - name: Changelog per ogni commit della pull request
+        env:
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          node -e "require('node:child_process').execFileSync(process.execPath, ['scripts/check-changelog.cjs', 'push'], {input: 'refs/heads/pr ' + process.env.PR_HEAD + ' refs/heads/main ' + process.env.PR_BASE + '\n', stdio: ['pipe', 'inherit', 'inherit']})"

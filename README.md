@@ -28,4 +28,6 @@ Su Windows x64 puoi usare anche [Node.js portatile locale](docs/tooling.md), sen
 
 [Regole del gioco](docs/gameplay.md) · [Changelog](CHANGELOG.md)
 
+[Pubblicazione web con GitHub Pages](docs/publishing.md): test e deploy automatici a ogni push su `main`, dopo l'attivazione di Pages nel repository.
+
 Gli script vengono caricati nell'ordine simulation → day → game. Mantieni l'avvio tramite file locale e la simulazione indipendente dal DOM.

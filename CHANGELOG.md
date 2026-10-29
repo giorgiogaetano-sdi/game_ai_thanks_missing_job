@@ -4,6 +4,33 @@ Ogni commit di lavoro aggiunge una voce; ogni push include le voci dei commit in
 
 ## Non rilasciato
 
+### 2026-10-29 — Primo push di un branch senza ricontrollare la storia pubblicata
+- Tipo: correzione.
+- Modifica: per un branch remoto nuovo l'hook esclude i commit già presenti nei riferimenti remoti locali. Il commit storico della licenza non blocca più il push; ogni nuovo commit di lavoro deve ancora aggiungere il changelog.
+- Verifica: test degli hook superati; selezione reale dei commit del nuovo branch limita il controllo a `9effb49`, escludendo la licenza storica; tutti i 44 test del gioco superati. Simulazione completa dell'hook locale bloccata dall'ambiente (`spawnSync git EPERM`). Nessuna modifica alle regole di gioco.
+
+### 2026-10-29 — Repository pubblico e collaborazione tramite pull request
+- Tipo: configurazione e documentazione.
+- Modifica: workflow di controllo pull request con test e obbligo di changelog per ogni commit; modello di pull request; istruzioni per rendere pubblico il repository, proteggere `main` e attivare Pages gratuito.
+- Verifica: tutti i 44 test di gioco e i test degli hook superati con Node.js portatile; `git diff --check` superato. Controllo remoto Actions e protezioni GitHub da verificare dopo il caricamento e la configurazione del repository. Nessuna impostazione remota modificata da questi file.
+
+### 2026-10-16 - Call non bloccanti durante lo squillo ed email confuse
+- Tipo: aggiunta.
+- Modifica: interazioni libere durante lo squillo, scadenza dopo 60 minuti di gioco ed email casuale con lavoro assegnato e penalita cumulativa di 0,25 punti alla produttivita base per call ignorata. Avviso email e indicatore della penalita, azzerati a ogni livello; aggiornate le regole iniziali.
+- Verifica: `.tools/node/node.exe tests/tests.cjs` superata, 44 test: interazioni durante lo squillo, scadenza, oggetti email casuali, assegnazione unica del lavoro, penalita cumulativa e reset, avviso email temporaneo e indicatore persistente. Verifica visiva desktop/mobile non eseguita: nessun browser disponibile negli strumenti.
+
+
+### 2026-10-16 - Schermata iniziale con Start e regole base
+- Tipo: aggiunta.
+- Modifica: titolo, obiettivo e regole principali prima della partita, per spiegare comandi e condizioni di vittoria. Start mostra il gioco e porta il focus sul Canvas; simulazione e input restano sospesi fino all?avvio. Aggiornata la guida interfaccia e la regressione sulla sospensione e sull?avvio.
+- Verifica: suite `.tools/node/node.exe tests/tests.cjs` superata: 41 test, inclusa sospensione prima di Start e ripresa dopo l?attivazione. Verifica visiva desktop/mobile non eseguibile: nessun browser disponibile negli strumenti di controllo.
+
+
+### 2026-10-16 — Preparazione pubblicazione web su GitHub Pages
+- Tipo: aggiunta.
+- Modifica: workflow GitHub Actions per testare e pubblicare il gioco a ogni push su `main`; pacchetto limitato ai file del gioco e licenza. Guida all'attivazione, ai requisiti dei repository privati e alla visibilità del sito.
+- Verifica: configurazione confrontata con la documentazione ufficiale GitHub Pages. Esecuzione della pipeline e verifica del sito online da completare dopo l'attivazione Pages e il push.
+
 ### 2026-10-16 — Push con commit remoto non ancora scaricato
 - Tipo: correzione.
 - Modifica: il controllo pre-push verifica se il commit remoto esiste localmente; se manca, controlla tutta la storia locale senza costruire un intervallo Git non valido. Non forza il push né sovrascrive la storia remota.

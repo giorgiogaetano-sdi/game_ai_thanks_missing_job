@@ -23,6 +23,8 @@ for(const [options,range] of [[{},`${remote}..${local}`],[{known:false},local],[
  const result=check(options);assert.equal(result.exitCode,0);assert.equal(result.calls.find(args=>args[0]==='rev-list')[2],range);
 }
 assert.equal(check({tip:zero,addition:false}).exitCode,1);
+assert.deepEqual(Array.from(check({tip:zero}).calls.find(args=>args[0]==='rev-list')),['rev-list','--no-merges',local,'--not','--remotes']);
+assert.deepEqual(Array.from(check({}).calls.find(args=>args[0]==='rev-list')),['rev-list','--no-merges',`${remote}..${local}`]);
 assert.equal(check({tip:remote,addition:false}).exitCode,1);
 assert.equal(check({mode:'commit'}).exitCode,0);
 assert.equal(check({mode:'commit',addition:false}).exitCode,1);
