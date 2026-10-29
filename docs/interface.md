@@ -15,3 +15,7 @@
 ## Prima del commit
 
 Esegui i test e controlla il browser a dimensioni desktop e mobile, includendo call, pranzo, avviso delle 17:40 e fine livello. Annota nel changelog cosa hai verificato e gli eventuali limiti; i test con Canvas simulato non verificano l'aspetto visivo.
+
+## Schermata iniziale
+
+All?apertura sono visibili titolo, obiettivo, regole base e Start. Simulazione e input di gioco restano sospesi fino all?attivazione di Start, che porta il focus sul Canvas. Riprova e livello successivo restano nella partita; ricaricare mostra nuovamente la schermata iniziale.

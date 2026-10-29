@@ -4,7 +4,7 @@
 const sim=root.OfficeSim,desk={x:488,y:363},entry={x:610,y:560},mealSeat={x:775,y:315};
 const phrases=['Solo 5 minuti!','È ASAP!','Puoi farmi un favore?','Una call al volo?','Ti rubo un secondo!','Mi fai un recap?','Lo vuole il capo!','Hai un attimo?','È una quick win!'];
 const explanations=['Allora, ti spiego…','Prima fai questa parte…','Poi c’è una piccola modifica…','Aspetta, non ho finito!','Ti mando tutti i dettagli!'];
-const config={minutesPerSecond:6,initialWork:480,coffeeMultiplier:1.5,coffeeDuration:120,drinkDuration:1.6,missedLunchMultiplier:0.9975,contactSeconds:3,callMinutes:[630,930],callDuration:6,lunchStart:780,lunchEnd:840,end:1080,exitDeadline:1110};
+const config={minutesPerSecond:6,initialWork:480,coffeeMultiplier:1.5,coffeeDuration:120,drinkDuration:1.6,missedLunchMultiplier:0.9975,contactSeconds:3,callMinutes:[630,930],callDuration:6,callRingMinutes:60,missedCallPenalty:0.25,lunchStart:780,lunchEnd:840,end:1080,exitDeadline:1110};
 
 const koReasons=[
  'Hai lavorato tutta la notte. Il buongiorno del capo è arrivato prima della tua buonanotte.',
@@ -69,7 +69,7 @@ const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y),near=(a,b,r=30)=>dist(a,b)<r;
 
 function create(random=Math.random,level=1){
  level=Math.max(1,Math.min(levels.length,Math.trunc(level)||1));const rules=levels[level-1];
- const state={player:{...sim.createPlayer(),despair:0,lastDelegation:0},phase:'arrival',minute:540,work:config.initialWork,assigned:config.initialWork,completed:0,coffeeUntil:0,coffeeReady:0,drinking:0,hungerPenalty:false,koReason:'',meal:0,ate:false,npcs:[],spawnIn:rules.spawn[0],id:0,random,working:false,sitting:false,standup:0,message:'Livello '+level+' — '+rules.name+'. Raggiungi il PC evidenziato e premi E.',delegations:0,level,rules,lastMinuteEvent:false,eventPopup:0,officeElapsed:0,coffeeOwner:null,playerDelegation:null,passedWork:0,call:null,nextCallIndex:0,callsCompleted:0};state.developers=createDevelopers(state);return state;
+ const state={player:{...sim.createPlayer(),despair:0,lastDelegation:0},phase:'arrival',minute:540,work:config.initialWork,assigned:config.initialWork,completed:0,coffeeUntil:0,coffeeReady:0,drinking:0,hungerPenalty:false,koReason:'',meal:0,ate:false,npcs:[],spawnIn:rules.spawn[0],id:0,random,working:false,sitting:false,standup:0,message:'Livello '+level+' — '+rules.name+'. Raggiungi il PC evidenziato e premi E.',delegations:0,level,rules,lastMinuteEvent:false,eventPopup:0,officeElapsed:0,coffeeOwner:null,playerDelegation:null,passedWork:0,call:null,nextCallIndex:0,callsCompleted:0,missedCalls:0,email:null};state.developers=createDevelopers(state);return state;
 }
 
 const developerSeats=[
@@ -176,7 +176,7 @@ function finishExplanation(s,n,target){
  }
 }
 const lunch=s=>s.minute>=config.lunchStart&&s.minute<config.lunchEnd;
-function productivity(s){return s.rules.efficiency*(s.minute<s.coffeeUntil?config.coffeeMultiplier:1)*(s.hungerPenalty?config.missedLunchMultiplier:1);}
+function productivity(s){return Math.max(0,s.rules.efficiency-s.missedCalls*config.missedCallPenalty)*(s.minute<s.coffeeUntil?config.coffeeMultiplier:1)*(s.hungerPenalty?config.missedLunchMultiplier:1);}
 function sitAtPC(s){Object.assign(s.player,desk,{facing:'up',moving:false});}
 function delegationCandidate(s){return availableDevelopers(s).filter(d=>d.mode!=='fleeing'&&s.officeElapsed>=d.avoidUntil&&canTalk(s.player,d)).sort((a,b)=>dist(s.player,a)-dist(s.player,b))[0];}
 function endPlayerDelegation(s){
@@ -185,7 +185,7 @@ function endPlayerDelegation(s){
  s.playerDelegation=null;
 }
 function delegateWork(s){
- if(s.call||!['running','closing'].includes(s.phase)||s.work<=0||s.drinking>0||s.player.despair>0||playerIsDisturbed(s))return false;
+ if(s.call&&s.call.status==='active'||!['running','closing'].includes(s.phase)||s.work<=0||s.drinking>0||s.player.despair>0||playerIsDisturbed(s))return false;
  const d=delegationCandidate(s);if(!d)return false;
  s.working=false;s.sitting=false;
  if(s.random()<.5){
@@ -213,8 +213,16 @@ function startCall(s){
  s.message='Call obbligatoria in corso: resta al PC. I colleghi aspettano la fine.';return true;
 }
 function updateCalls(s,dt){
+ if(s.email)s.email.remaining=Math.max(0,s.email.remaining-dt);
+ if(s.call&&s.call.status==='pending'&&s.minute>=s.call.deadline){
+  const subjects=['OGGETTO: URGENTE!','OGGETTO: Funzionalit\u00e0 delle fate','OGGETTO: Superbonifica totale','OGGETTO: Il bottone deve sapere cosa fare','OGGETTO: Come da accordi mai presi'];
+  const subject=subjects[Math.min(subjects.length-1,Math.floor(s.random()*subjects.length))],amount=Math.round(random(s,...s.rules.debt));
+  s.work+=amount;s.assigned+=amount;s.missedCalls++;s.email={subject,amount,remaining:12};s.call=null;
+  s.message='ARRIVATA EMAIL! '+subject+' - Requisiti confusi, allegato immaginario. +'+amount+' minuti di lavoro; produttivit\u00e0 -0,25 per lavoro disordinato.';
+ }
+
  if(!s.call&&s.nextCallIndex<config.callMinutes.length&&s.minute>=config.callMinutes[s.nextCallIndex]){
-  s.call={status:'pending',remaining:config.callDuration};s.nextCallIndex++;endPlayerDelegation(s);
+  s.call={status:'pending',remaining:config.callDuration,deadline:config.callMinutes[s.nextCallIndex]+config.callRingMinutes};s.nextCallIndex++;
   s.message='Call obbligatoria! Torna al tuo PC e premi E per partecipare.';
  }
  if(s.call&&s.call.status==='active'){
@@ -225,7 +233,8 @@ function updateCalls(s,dt){
 function interact(s){
  if(s.player.knockback)return;
  if(['won','lost','standup'].includes(s.phase))return;
- if(s.call){if(s.call.status==='active'){s.message='Sei in call: attendi la fine prima di alzarti.';return;}if(startCall(s))return;s.message='Call obbligatoria: torna al tuo PC e premi E.';return;}
+ if(s.call&&s.call.status==='active'){s.message='Sei in call: attendi la fine prima di alzarti.';return;}
+ if(startCall(s))return;
  if(s.playerDelegation){endPlayerDelegation(s);s.message='Hai interrotto la delega.';return;}
  if(delegateWork(s))return;
  if(s.drinking>0){s.message='Stai bevendo il caffè. Un sorso alla volta!';return;}

@@ -63,7 +63,14 @@ test('Interfaccia: popup, vignetta spigolosa, successivo, riprova e fine campagn
  function el(id){return elements[id]||(elements[id]={classList:{toggle(){}},focus(){},getContext:()=>context});}
  const wrapped={...D,create(...args){const s=D.create(...args);captured.push(s);return s;},nextLevel(s){const next=D.nextLevel(s);if(next)captured.push(next);return next;}};
  const ui={OfficeSim:S,OfficeDay:wrapped,document:{querySelector:el,querySelectorAll:()=>[],addEventListener(){}},window:{addEventListener(){}},HTMLButtonElement:class{},requestAnimationFrame:f=>frames.push(f)};
- vm.runInNewContext(source('game.js'),ui);frames.shift()(16);assert.equal(el('#next').hidden,true);assert.equal(el('#event-popup').hidden,true);
+ vm.runInNewContext(source('game.js'),ui);
+ const before=JSON.stringify(captured[0]);
+ frames.shift()(16);frames.shift()(1016);el('#action').onclick();
+ assert.equal(JSON.stringify(captured[0]),before);
+ el('#start').onclick();assert.equal(el('#start-screen').hidden,true);assert.equal(el('#game-screen').hidden,false);
+ frames.shift()(1032);assert.equal(el('#next').hidden,true);assert.equal(el('#event-popup').hidden,true);
+ frames.shift()(1132);assert.notEqual(JSON.stringify(captured[0]),before);
+ el('#start').onclick();assert.equal(captured.length,1);
  let state=captured.at(-1);state.phase='running';state.nextCallIndex=D.config.callMinutes.length;state.minute=780;state.spawnIn=1e6;Object.assign(state.player,D.mealSeat);
  el('#action').onclick();assert.equal(state.sitting,true);assert.equal(state.player.facing,'up');run(state,2.5);frames.shift()(20);
  assert.ok(Math.abs(el('#lunch-progress').value-2.5)<0.1);assert.ok(el('#lunch-label').textContent.includes('50%'));assert.ok(ellipses.some(args=>args[0]===D.mealSeat.x&&args[1]===264));
@@ -90,6 +97,7 @@ test('Animazione caffè: tazzina alla bocca, fine animazione e HUD uscita',()=>{
  const el=id=>elements[id]||(elements[id]={classList:{toggle(){}},focus(){},getContext:()=>context});
  const wrapped={...D,create(...args){state=D.create(...args);return state;}};
  vm.runInNewContext(source('game.js'),{OfficeSim:S,OfficeDay:wrapped,document:{querySelector:el,querySelectorAll:()=>[],addEventListener(){}},window:{addEventListener(){}},HTMLButtonElement:class{},requestAnimationFrame:f=>frames.push(f)});
+ el('#start').onclick();
  frames.shift()(16);state.phase='running';state.spawnIn=1e6;state.player.x=750;state.player.y=146;el('#action').onclick();
  frames.shift()(20);assert.ok(cups.length>0);const initial=JSON.stringify(cups);cups.length=0;run(state,.8);frames.shift()(30);assert.notEqual(JSON.stringify(cups),initial);
  cups.length=0;run(state,1);frames.shift()(40);assert.equal(cups.length,0);
@@ -166,6 +174,7 @@ test('Animazione di disperazione sia per il player sia per gli sviluppatori',()=
  const context=new Proxy({measureText:t=>({width:t.length*7}),fillRect(...args){if(this.fillStyle==='#efb28a')hands.push(args);},fillText(text){labels.push(text);}},{get:(t,p)=>p in t?t[p]:()=>{},set:(t,p,v)=>(t[p]=v,true)});
  const el=id=>elements[id]||(elements[id]={classList:{toggle(){}},focus(){},getContext:()=>context});const wrapped={...D,create(...args){state=D.create(...args);return state;}};
  vm.runInNewContext(source('game.js'),{OfficeSim:S,OfficeDay:wrapped,document:{querySelector:el,querySelectorAll:()=>[],addEventListener(){}},window:{addEventListener(){}},HTMLButtonElement:class{},requestAnimationFrame:f=>frames.push(f)});
+ el('#start').onclick();
  state.phase='running';state.spawnIn=1e6;state.player.despair=1.8;state.player.lastDelegation=42;frames.shift()(16);assert.equal(hands.length,2);assert.ok(labels.includes('NOOO! +42 MIN?!'));const pose=JSON.stringify(hands);hands.length=0;run(state,.2);frames.shift()(20);assert.notEqual(JSON.stringify(hands),pose);
  state.player.despair=0;const dev=state.developers[0];Object.assign(dev,dev.home,{active:true,mode:'working',despair:1.8,lastDelegation:55});hands.length=0;labels.length=0;frames.shift()(30);assert.equal(hands.length,2);assert.ok(labels.includes('NOOO! +55 MIN?!'));
 });
@@ -208,6 +217,7 @@ test('Rendering delle fughe con cuffie, note e saltelli',()=>{
  const frames=[],elements={},labels=[];let state;const context=new Proxy({measureText:t=>({width:t.length*7}),fillText:t=>labels.push(t)},{get:(t,p)=>p in t?t[p]:()=>{},set:(t,p,v)=>(t[p]=v,true)});
  const el=id=>elements[id]||(elements[id]={classList:{toggle(){}},focus(){},getContext:()=>context});const wrapped={...D,create(...args){state=D.create(...args);return state;}};
  vm.runInNewContext(source('game.js'),{OfficeSim:S,OfficeDay:wrapped,document:{querySelector:el,querySelectorAll:()=>[],addEventListener(){}},window:{addEventListener(){}},HTMLButtonElement:class{},requestAnimationFrame:f=>frames.push(f)});
+ el('#start').onclick();
  const d=state.developers[0];Object.assign(d,{active:true,mode:'fleeing',x:300,y:450,escapeStyle:'music'});frames.shift()(16);assert.ok(labels.includes('NON TI SENTOOO!'));assert.ok(labels.includes('♪'));
  d.escapeStyle='hop';frames.shift()(20);assert.ok(labels.includes('HO UNA CALL!'));
 });
@@ -234,9 +244,16 @@ test('Interfaccia call: avviso, pulsante e animazioni di attesa',()=>{
  const frames=[],elements={},labels=[];let state;const context=new Proxy({measureText:t=>({width:t.length*7}),fillText:t=>labels.push(t)},{get:(t,p)=>p in t?t[p]:()=>{},set:(t,p,v)=>(t[p]=v,true)});
  const el=id=>elements[id]||(elements[id]={classList:{toggle(){}},focus(){},getContext:()=>context});const wrapped={...D,create(...args){state=D.create(...args);return state;}};
  vm.runInNewContext(source('game.js'),{OfficeSim:S,OfficeDay:wrapped,document:{querySelector:el,querySelectorAll:()=>[],addEventListener(){}},window:{addEventListener(){}},HTMLButtonElement:class{},requestAnimationFrame:f=>frames.push(f)});
+ el('#start').onclick();
  state.phase='running';state.nextCallIndex=2;state.spawnIn=Infinity;Object.assign(state.player,D.desk);state.call={status:'pending',remaining:6};frames.shift()(16);assert.equal(el('#call-notice').hidden,false);assert.ok(el('#action').textContent.includes('Partecipa'));
  assert.ok(labels.some(t=>t.includes('DRIIIN')||t.includes('PRONTOOO')));
  el('#action').onclick();const n=D.spawn(state);Object.assign(n,D.desk);run(state,.2);frames.shift()(20);assert.equal(el('#action').disabled,true);assert.ok(el('#call-notice').textContent.includes('IN CORSO'));assert.ok(labels.includes('IN CALL · ASCOLTO'));assert.ok(labels.some(t=>t.includes('orologio')));
+ state.npcs=[];state.call={status:'pending',deadline:690};state.minute=689.7;state.player.x=750;state.player.y=146;
+ frames.shift()(21);assert.ok(el('#action').textContent.includes('caff'));assert.equal(el('#action').disabled,false);
+ state.minute=689.99;D.update(state,{},dt);frames.shift()(22);
+ assert.equal(el('#call-notice').hidden,true);assert.equal(el('#email-notice').hidden,false);assert.ok(el('#email-notice').textContent.includes('OGGETTO:'));assert.ok(el('#email-notice').textContent.includes('-0,25'));assert.equal(el('#call-penalty').hidden,false);
+ run(state,12.1);frames.shift()(23);assert.equal(el('#email-notice').hidden,true);assert.equal(el('#call-penalty').hidden,false);
+
 });
 test('Visitatore dal portone raggiunge il programmatore lontano anche dopo la pazienza',()=>{
  const s=fresh(),d=s.developers[0];s.developers=[d];
@@ -283,6 +300,7 @@ test('Rendering: capriole, trottola e frenata sulle ginocchia',()=>{
  const el=id=>elements[id]||(elements[id]={classList:{toggle(){}},focus(){},getContext:()=>context});
  const wrapped={...D,create(...args){state=D.create(...args);return state;}};
  vm.runInNewContext(source('game.js'),{OfficeSim:S,OfficeDay:wrapped,document:{querySelector:el,querySelectorAll:()=>[],addEventListener(){}},window:{addEventListener(){}},HTMLButtonElement:class{},requestAnimationFrame:f=>frames.push(f)});
+ el('#start').onclick();
  for(const [style,text] of [['roll','CAPRIOLA'],['backroll','ROTOLAMENTO'],['spin','TROTTOLA'],['knees','GINOCCHIA']]){
   state.npcs=[{doorGuard:true,urgent:true,mode:'doorPush',x:610,y:560,phrase:'DEVI FINIRE!!!'}];
   labels.length=0;state.player.knockback={style,elapsed:.3,duration:1.2};frames.shift()(16);
@@ -291,6 +309,24 @@ test('Rendering: capriole, trottola e frenata sulle ginocchia',()=>{
  }
  assert.equal(rotations.length,4);assert.ok(rotations[0]>0);assert.ok(rotations[1]<0);
  state.player.knockback=null;state.npcs[0].mode='panic';frames.shift()(16);assert.ok(labels.includes('DEVI FINIRE!!!'));
+});
+test('Squillo: caffe, pranzo, movimento e delega rimangono disponibili',()=>{
+ const a=fresh();a.call={status:'pending',deadline:690};a.player.x=750;a.player.y=146;D.interact(a);assert.ok(a.drinking>0);const x=a.player.x;run(a,.2,{left:true});assert.ok(a.player.x<x);
+ const b=fresh();b.minute=780;b.call={status:'pending',deadline:840};Object.assign(b.player,D.mealSeat);D.interact(b);assert.equal(b.sitting,true);run(b,5.1);assert.equal(b.ate,true);
+ const c=fresh(),d=c.developers[0];c.developers=[d];Object.assign(d,{active:true,mode:'working',x:300,y:450,coffeeAt:Infinity});Object.assign(c.player,{x:280,y:450});c.random=()=>.8;c.nextCallIndex=0;c.minute=629.99;
+ D.interact(c);assert.ok(c.playerDelegation);D.update(c,{},dt);assert.equal(c.call.status,'pending');assert.ok(c.playerDelegation);run(c,2.1);assert.ok(c.passedWork>0);
+});
+test('Call ignorata: scadenza precisa, email unica, penalita cumulativa e reset',()=>{
+ const s=fresh();s.nextCallIndex=0;s.minute=629.99;D.update(s,{},dt);assert.equal(s.call.deadline,690);s.minute=689.8;D.update(s,{},dt);assert.equal(s.missedCalls,0);const work=s.work;s.minute=689.99;D.update(s,{},dt);
+ assert.equal(s.call,null);assert.equal(s.missedCalls,1);assert.ok(s.email.subject.startsWith('OGGETTO:'));assert.equal(s.work,work+120);assert.equal(D.productivity(s),s.rules.efficiency-.25);const assigned=s.assigned;run(s,.2);assert.equal(s.assigned,assigned);
+ s.minute=930;D.update(s,{},dt);assert.equal(s.call.deadline,990);s.minute=989.99;D.update(s,{},dt);assert.equal(s.missedCalls,2);assert.equal(D.productivity(s),s.rules.efficiency-.5);
+ s.coffeeUntil=1200;s.hungerPenalty=true;assert.ok(Math.abs(D.productivity(s)-(s.rules.efficiency-.5)*1.5*.9975)<1e-12);
+ s.phase='closing';s.minute=1080;s.work=0;Object.assign(s.player,{x:610,y:574});D.update(s,{},dt);assert.equal(s.phase,'won');const next=D.nextLevel(s);assert.equal(next.missedCalls,0);assert.equal(next.email,null);
+});
+test('Email: oggetti divertenti, avviso temporaneo e penalita persistente',()=>{
+ for(const [roll,subject] of [[0,'OGGETTO: URGENTE!'],[.21,'OGGETTO: Funzionalit\u00e0 delle fate'],[.41,'OGGETTO: Superbonifica totale']]){
+ const s=fresh();s.random=()=>roll;s.minute=689.99;s.call={status:'pending',deadline:690};D.update(s,{},dt);assert.equal(s.email.subject,subject);run(s,12.1);assert.equal(s.email.remaining,0);assert.equal(s.missedCalls,1);
+ }
 });
 console.log(count+' test completati.');
 

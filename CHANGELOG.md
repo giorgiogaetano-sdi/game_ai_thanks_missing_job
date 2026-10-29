@@ -4,6 +4,11 @@ Ogni commit di lavoro aggiunge una voce; ogni push include le voci dei commit in
 
 ## Non rilasciato
 
+### 2026-10-29 — Consegna schermata iniziale e aggiornamenti call/email
+- Tipo: aggiunta.
+- Modifica: pubblicazione delle modifiche locali al gioco: schermata con Start e regole, interazioni disponibili durante lo squillo, scadenza delle call con email e penalità cumulativa; inclusi interfaccia, documentazione e regressioni.
+- Verifica: tutti i 44 test del gioco e i test degli hook superati; `git diff --check` superato. Verifica visiva nel browser non eseguita. Commit e push da completare dal terminale utente: questa sessione non può scrivere in `.git`.
+
 ### 2026-10-29 — Primo push di un branch senza ricontrollare la storia pubblicata
 - Tipo: correzione.
 - Modifica: per un branch remoto nuovo l'hook esclude i commit già presenti nei riferimenti remoti locali. Il commit storico della licenza non blocca più il push; ogni nuovo commit di lavoro deve ancora aggiungere il changelog.
