@@ -45,4 +45,18 @@ Al primo push di un nuovo branch il controllo esamina tutta la sua storia non di
 
 Mantieni la separazione tra simulazione, regole e browser. Preferisci modifiche piccole, nomi chiari e commenti che spiegano le scelte. Non introdurre dipendenze o una compilazione senza discuterne l'impatto sull'avvio offline. Non committare credenziali, file personali o output temporanei.
 
-Il repository va creato sulla piattaforma concordata, preferibilmente privata aziendale, poi collegato con `git remote add origin <URL>`. Il proprietario invita i colleghi e configura i permessi e la revisione obbligatoria.
+Il repository GitHub viene pubblicato per usare GitHub Pages sul piano gratuito. La visibilità pubblica permette lettura e fork; la scrittura resta limitata ai collaboratori autorizzati.
+
+## Protezione di main su GitHub
+
+Il proprietario configura una regola attiva per `main` da Settings → Rules → Rulesets (oppure Branches → branch protection):
+
+- Richiedere una pull request prima del merge e almeno un'approvazione di un collega.
+- Richiedere il controllo `Test e changelog` del workflow `Controlli pull request`.
+- Richiedere la risoluzione delle conversazioni.
+- Bloccare force push ed eliminazione del branch.
+- Applicare la regola anche agli amministratori, senza bypass ordinari.
+
+Il workflow controlla test e changelog dei commit della pull request. Per scegliere il controllo come obbligatorio potrebbe essere necessario eseguire prima una pull request. I file locali non attivano da soli la protezione: la regola deve essere salvata nelle impostazioni GitHub.
+
+L'autore non può approvare la propria pull request: invita almeno un collega con i permessi necessari. La pubblicazione Pages parte soltanto dopo il merge su `main`.
