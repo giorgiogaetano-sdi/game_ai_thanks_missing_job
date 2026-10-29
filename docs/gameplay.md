@@ -62,6 +62,9 @@ Dopo le 18, tentare di uscire con lavoro residuo scatena una spinta verso l’in
 
 Quando arriva una call obbligatoria, il monitor del tuo PC vibra e mostra una vignetta «DRIIIN! ♪» / «♪ PRONTOOO?» finché non partecipi.
 
-## Call obbligatorie
-Alle 10:30 e alle 15:30 arriva una call obbligatoria, segnalata da un avviso persistente. Torna al PC evidenziato e premi E per partecipare. Ogni call dura 6 secondi reali: il player indossa le cuffie, segue la conversazione e vede una barra di avanzamento. Durante la call non può muoversi, lavorare, delegare o interrompere con E; l’orologio di gioco continua a scorrere. Al termine riceve 60–180 minuti di lavoro, con lo stesso peso dei disturbatori normali.
-I disturbatori diretti al player si avvicinano e aspettano: guardano l’orologio, fanno cenni e tamburellano con i piedi. Il loro timeout e il progresso della spiegazione restano sospesi. A fine call riprendono a cercare il player o a spiegare dal punto precedente. Le conversazioni rivolte agli altri sviluppatori continuano. Non puoi vincere uscendo se resta una call obbligatoria da completare.
+## Call ed email confuse
+Alle 10:30 e alle 15:30 il PC squilla per un massimo di 60 minuti di gioco. Durante lo squillo puoi muoverti, prendere caffe, pranzare e delegare, anche se la call arriva durante una spiegazione. E al PC risponde: la conversazione dura 6 secondi reali e richiede di restare seduti, poi assegna il normale lavoro della call.
+
+Se non rispondi entro la scadenza, arriva un'email con oggetto casuale (URGENTE!, Funzionalita delle fate, Superbonifica totale e altri). Un avviso appare per 12 secondi reali. Ricevi comunque il lavoro e perdi 0,25 punti di efficienza base per ogni call ignorata, fino al prossimo livello; caffe e pranzo applicano i rispettivi moltiplicatori all'efficienza ridotta. La penalita totale resta visibile. Le email risolvono le call ai fini dell'uscita.
+
+Durante una call attiva i disturbatori diretti al player aspettano senza consumare timeout o avanzamento; le conversazioni rivolte ai colleghi continuano.

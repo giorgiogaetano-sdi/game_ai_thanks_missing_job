@@ -1,6 +1,6 @@
 ﻿(() => {
 'use strict';
-const canvas=document.querySelector('#game'),c=canvas.getContext('2d'),sim=OfficeSim,world=sim.world,keys=new Set();let day=OfficeDay.create(),player=day.player,last=0,accumulator=0,workAnimation=0;
+const canvas=document.querySelector('#game'),c=canvas.getContext('2d'),sim=OfficeSim,world=sim.world,keys=new Set();let day=OfficeDay.create(),player=day.player,last=0,accumulator=0,workAnimation=0,started=false;
 c.imageSmoothingEnabled=false;
 const rect=(x,y,w,h,color)=>{c.fillStyle=color;c.fillRect(Math.round(x),Math.round(y),w,h);};
 function label(text,x,y,color='#b7cab1',size=10){c.fillStyle=color;c.font=`${size}px monospace`;c.fillText(text,x,y);}
@@ -162,13 +162,14 @@ function workingPerson(actor=player,t=workAnimation){
  rect(x-18,y-34+leftTap,3,2,'#f6d7a8');
 }
 function render(){rect(0,0,960,600,'#a5aa88');for(let y=52;y<580;y+=24)for(let x=20;x<940;x+=24){rect(x,y,23,23,((x/24|0)+(y/24|0))%2?'#a8ae8d':'#a1a887');}rect(656,52,284,528,'#c0b18b');for(let y=52;y<580;y+=32)rect(656,y,284,1,'#b2a27e');rect(27,437,607,100,'#8d9f80');rect(32,443,596,2,'#b2bf96');label('PRODUCTIVITY DEPARTMENT',66,93,'#4c6656',12);label('BREAK ROOM',710,185,'#796d52',12);label('TAKE A BREATH.',740,541,'#796d52',10);label('AI TRANSFORMATION',77,472,'#455f50',11);label('Your future is being optimized.',77,490,'#5c7360',9);
-const layers=world.objects.map(o=>({depth:o.y+o.h,draw:()=>object(o)}));for(const dev of day.developers)if(dev.active)layers.push({depth:dev.y,draw:()=>person(dev)});for(const npc of day.npcs)layers.push({depth:npc.y,draw:()=>person(npc)});layers.push({depth:player.y,draw:()=>player.knockback?knockedPerson():person()});layers.sort((a,b)=>a.depth-b.depth).forEach(o=>o.draw());const colleague=OfficeDay.delegationCandidate(day);if(!day.call&&colleague&&day.work>0&&['running','closing'].includes(day.phase))label('[E] DELEGA',colleague.x-31,colleague.y-50,'#264e35',10);const near=nearby();if(near&&!day.sitting){label('[E]',player.x-10,player.y-46,'#263d32',11);}drawDay();document.querySelector('#zone').textContent=player.x>656?'SALA BREAK':'OPEN SPACE';}
+const layers=world.objects.map(o=>({depth:o.y+o.h,draw:()=>object(o)}));for(const dev of day.developers)if(dev.active)layers.push({depth:dev.y,draw:()=>person(dev)});for(const npc of day.npcs)layers.push({depth:npc.y,draw:()=>person(npc)});layers.push({depth:player.y,draw:()=>player.knockback?knockedPerson():person()});layers.sort((a,b)=>a.depth-b.depth).forEach(o=>o.draw());const colleague=OfficeDay.delegationCandidate(day);if(!(day.call&&day.call.status==='active')&&colleague&&day.work>0&&['running','closing'].includes(day.phase))label('[E] DELEGA',colleague.x-31,colleague.y-50,'#264e35',10);const near=nearby();if(near&&!day.sitting){label('[E]',player.x-10,player.y-46,'#263d32',11);}drawDay();document.querySelector('#zone').textContent=player.x>656?'SALA BREAK':'OPEN SPACE';}
 function nearby(){return Math.hypot(player.x-OfficeDay.desk.x,player.y-OfficeDay.desk.y)<38||Math.hypot(player.x-OfficeDay.mealSeat.x,player.y-OfficeDay.mealSeat.y)<55||(player.x>688&&player.x<810&&player.y>125&&player.y<167);}
 function loadDay(next){day=next;player=day.player;keys.clear();last=0;accumulator=0;workAnimation=0;canvas.focus();}
-function interact(){if(day.phase==='won'){loadDay(OfficeDay.nextLevel(day)||OfficeDay.create(day.random,1));return;}if(day.phase==='lost'){loadDay(OfficeDay.create(day.random,day.level));return;}OfficeDay.interact(day);}
+function interact(){if(!started)return;if(day.phase==='won'){loadDay(OfficeDay.nextLevel(day)||OfficeDay.create(day.random,1));return;}if(day.phase==='lost'){loadDay(OfficeDay.create(day.random,day.level));return;}OfficeDay.interact(day);}
 const allowed=new Set(['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','ShiftLeft','ShiftRight','KeyE']);
-window.addEventListener('keydown',e=>{if(!allowed.has(e.code)||e.target instanceof HTMLButtonElement)return;e.preventDefault();keys.add(e.code);if(e.code==='KeyE'&&!e.repeat)interact();});window.addEventListener('keyup',e=>keys.delete(e.code));window.addEventListener('blur',()=>keys.clear());document.addEventListener('visibilitychange',()=>{keys.clear();last=0;accumulator=0;});
-document.querySelectorAll('[data-key]').forEach(b=>{b.addEventListener('pointerdown',e=>{e.preventDefault();b.setPointerCapture(e.pointerId);keys.add(b.dataset.key);if(b.dataset.key==='KeyE')interact();});for(const type of ['pointerup','pointercancel','lostpointercapture'])b.addEventListener(type,()=>keys.delete(b.dataset.key));});
+window.addEventListener('keydown',e=>{if(!started||!allowed.has(e.code)||e.target instanceof HTMLButtonElement)return;e.preventDefault();keys.add(e.code);if(e.code==='KeyE'&&!e.repeat)interact();});window.addEventListener('keyup',e=>keys.delete(e.code));window.addEventListener('blur',()=>keys.clear());document.addEventListener('visibilitychange',()=>{keys.clear();last=0;accumulator=0;});
+document.querySelectorAll('[data-key]').forEach(b=>{b.addEventListener('pointerdown',e=>{if(!started)return;e.preventDefault();b.setPointerCapture(e.pointerId);keys.add(b.dataset.key);if(b.dataset.key==='KeyE')interact();});for(const type of ['pointerup','pointercancel','lostpointercapture'])b.addEventListener(type,()=>keys.delete(b.dataset.key));});
+document.querySelector('#start').onclick=()=>{if(started)return;started=true;document.querySelector('#start-screen').hidden=true;document.querySelector('#game-screen').hidden=false;keys.clear();last=0;accumulator=0;canvas.focus();};
 document.querySelector('#action').onclick=()=>{interact();canvas.focus();};
 document.querySelector('#reset').onclick=()=>loadDay(OfficeDay.create(day.random,day.level));
 document.querySelector('#next').onclick=()=>{if(day.phase==='won')loadDay(OfficeDay.nextLevel(day)||OfficeDay.create(day.random,1));};
@@ -213,7 +214,7 @@ function drawDay(){
  }
  if(day.drinking>0)label('UN SORSO DI CAFFÈ…',player.x-52,player.y-48,'#244932',10);
  const action=document.querySelector('#action'),atDesk=Math.hypot(player.x-OfficeDay.desk.x,player.y-OfficeDay.desk.y)<38,atTable=Math.hypot(player.x-OfficeDay.mealSeat.x,player.y-OfficeDay.mealSeat.y)<55;
- action.textContent='E · '+(day.call?(day.call.status==='active'?'In call…':atDesk?'Partecipa alla call':'Torna al PC per la call'):day.playerDelegation?'Interrompi delega':OfficeDay.delegationCandidate(day)&&day.work>0&&['running','closing'].includes(day.phase)?'Delega lavoro':day.phase==='won'?'Continua':day.phase==='lost'?'Riprova':day.phase==='standup'?'Standup…':day.drinking>0?'Bevendo…':atDesk?(day.phase==='arrival'?'Avvia standup':day.working?'Alzati dal PC':'Lavora al PC'):atTable&&OfficeDay.lunch(day)?(day.sitting?'Alzati dal tavolo':'Siediti e pranza'):player.x>688&&player.x<810&&player.y>125&&player.y<167?'Prendi un caffè':'Interagisci');
+ action.textContent='E · '+(day.call&&day.call.status==='active'?'In call...':day.call&&atDesk?'Partecipa alla call':day.playerDelegation?'Interrompi delega':OfficeDay.delegationCandidate(day)&&day.work>0&&['running','closing'].includes(day.phase)?'Delega lavoro':day.phase==='won'?'Continua':day.phase==='lost'?'Riprova':day.phase==='standup'?'Standup…':day.drinking>0?'Bevendo…':atDesk?(day.phase==='arrival'?'Avvia standup':day.working?'Alzati dal PC':'Lavora al PC'):atTable&&OfficeDay.lunch(day)?(day.sitting?'Alzati dal tavolo':'Siediti e pranza'):player.x>688&&player.x<810&&player.y>125&&player.y<167?'Prendi un caffè':'Interagisci');
  action.disabled=!!player.knockback||day.phase==='standup'||day.drinking>0||!!(day.call&&day.call.status==='active');
 
  if(day.playerDelegation){
@@ -231,7 +232,9 @@ function drawDay(){
  document.querySelector('#event-popup').hidden=day.eventPopup<=0||day.phase!=='running';
  document.querySelector('.toolbar').classList.toggle('event-active',day.lastMinuteEvent&&['running','closing'].includes(day.phase));
  const callNotice=document.querySelector('#call-notice');callNotice.hidden=!day.call||!['running','closing'].includes(day.phase);
- callNotice.textContent=day.call?(day.call.status==='active'?'CALL IN CORSO · '+Math.ceil(day.call.remaining)+'s · Rimani al PC, i colleghi aspettano.':'CALL OBBLIGATORIA · Torna al tuo PC e premi E per partecipare.') : '';
+ callNotice.textContent=day.call?(day.call.status==='active'?'CALL IN CORSO · '+Math.ceil(day.call.remaining)+'s · Rimani al PC, i colleghi aspettano.':'CALL IN ARRIVO - '+Math.max(0,Math.ceil((day.call.deadline??day.minute+60)-day.minute))+' min per rispondere al PC con E. Puoi continuare le altre attivita.') : '';
+ const emailNotice=document.querySelector('#email-notice');emailNotice.hidden=!day.email||day.email.remaining<=0;
+ emailNotice.textContent=day.email?'ARRIVATA EMAIL! '+day.email.subject+' - Requisiti confusi, allegato immaginario. +'+day.email.amount+' min di lavoro. Produttivit\u00e0 -0,25: lavoro disordinato.':'';
  if(day.call&&day.call.status==='active'){
   rect(player.x-46,player.y+16,92,7,'#354b42');rect(player.x-46,player.y+16,Math.round(92*(1-day.call.remaining/OfficeDay.config.callDuration)),7,'#a9db78');
  }
@@ -243,6 +246,7 @@ function drawDay(){
  const minute=Math.floor(day.minute);document.querySelector('#clock').textContent=String(Math.floor(minute/60)).padStart(2,'0')+':'+String(minute%60).padStart(2,'0');
  document.querySelector('#work').textContent=fmt(day.work);const bar=document.querySelector('#workbar');bar.max=Math.max(480,day.assigned);bar.value=day.work;
  const threatened=OfficeDay.playerIsDisturbed(day);
+ const penalty=document.querySelector('#call-penalty');penalty.hidden=day.missedCalls===0;penalty.textContent='Lavoro disordinato: produttivit\u00e0 -'+(day.missedCalls*OfficeDay.config.missedCallPenalty).toFixed(2).replace('.',',');
  const activity=document.querySelector('#activity');activity.textContent=({arrival:'Vai al tuo PC',standup:'Standup…',won:'VITTORIA',lost:'SCONFITTA'})[day.phase]||(day.call?(day.call.status==='active'?'In call obbligatoria':'Call: torna al PC'):day.playerDelegation?'Stai delegando…':day.drinking>0?'Bevendo caffè':day.sitting?'A pranzo':player.despair>0?'Disperazione!':threatened?'Spiegazione in corso!' :day.working?'Al lavoro ×'+OfficeDay.productivity(day).toFixed(3):OfficeDay.lunch(day)?'Pausa 13–14':day.phase==='closing'?'Corri all’uscita!':'In movimento');activity.classList.toggle('danger',threatened||day.phase==='lost');
  document.querySelector('#buff').textContent=(day.minute<day.coffeeUntil?'×1.5 ('+Math.ceil(day.coffeeUntil-day.minute)+'m)':'Nessun caffè')+' / '+(day.ate?'mangiato':day.hungerPenalty?'saltato (−0,25%)':'da fare');document.querySelector('#message').textContent=day.message;
 
@@ -258,7 +262,7 @@ function drawDay(){
 
 }
 
-function frame(time){if(!last)last=time;accumulator+=Math.min((time-last)/1000,0.1);last=time;const input={left:keys.has('KeyA')||keys.has('ArrowLeft'),right:keys.has('KeyD')||keys.has('ArrowRight'),up:keys.has('KeyW')||keys.has('ArrowUp'),down:keys.has('KeyS')||keys.has('ArrowDown'),run:keys.has('ShiftLeft')||keys.has('ShiftRight')};while(accumulator>=1/60){OfficeDay.update(day,input,1/60);if(animatingWork())workAnimation+=1/60;accumulator-=1/60;}render();requestAnimationFrame(frame);}requestAnimationFrame(frame);
+function frame(time){if(!started){last=0;accumulator=0;requestAnimationFrame(frame);return;}if(!last)last=time;accumulator+=Math.min((time-last)/1000,0.1);last=time;const input={left:keys.has('KeyA')||keys.has('ArrowLeft'),right:keys.has('KeyD')||keys.has('ArrowRight'),up:keys.has('KeyW')||keys.has('ArrowUp'),down:keys.has('KeyS')||keys.has('ArrowDown'),run:keys.has('ShiftLeft')||keys.has('ShiftRight')};while(accumulator>=1/60){OfficeDay.update(day,input,1/60);if(animatingWork())workAnimation+=1/60;accumulator-=1/60;}render();requestAnimationFrame(frame);}requestAnimationFrame(frame);
 })();
 
 
